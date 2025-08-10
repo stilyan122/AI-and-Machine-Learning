@@ -3,6 +3,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 def plot_target_distribution(y, title="Target distribution", save=None):
+    """
+    Plot Target (chosen) Distribution Function
+    """
+    
     y = pd.Series(y).astype(int)
     plt.figure()
     
@@ -21,6 +25,10 @@ def plot_target_distribution(y, title="Target distribution", save=None):
     plt.show()
 
 def plot_hist(df, col, title=None, save=None):
+    """
+    Plot Histogram Function
+    """
+    
     if title is None:
         title = f"{col} distribution"
         
@@ -38,6 +46,10 @@ def plot_hist(df, col, title=None, save=None):
     plt.show()
     
 def boxplot_by_target(df, feature, target, labels=("Class 0","Class 1"), save=None):
+    """
+    Plot Boxplot By a Given Target Function
+    """
+    
     data0 = df.loc[df[target]==0, feature].dropna().values
     data1 = df.loc[df[target]==1, feature].dropna().values
     
@@ -53,6 +65,10 @@ def boxplot_by_target(df, feature, target, labels=("Class 0","Class 1"), save=No
     plt.show()
 
 def top_corr_with_target(df, target, k=15, save=None):
+    """
+    Function to Build Correlation Plot By a Given Target
+    """
+    
     num_cols = df.select_dtypes(include=[np.number]).columns.tolist()
     
     if target in num_cols:
@@ -75,6 +91,10 @@ def top_corr_with_target(df, target, k=15, save=None):
     return corr
 
 def positive_rate_by_binary(df, cols, target, top=15, save=None):
+    """
+    Funciton to Plot a + Rate by Binary Columns
+    """
+    
     rates = []
     for c in cols:
         vals = df[c].dropna().unique()
