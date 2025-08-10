@@ -24,7 +24,7 @@ def plot_target_distribution(y, title="Target distribution", save=None):
 
     plt.show()
 
-def plot_hist(df, col, title=None, save=None):
+def plot_hist(df, col, title=None, save=None, bins=8):
     """
     Plot Histogram Function
     """
@@ -33,7 +33,7 @@ def plot_hist(df, col, title=None, save=None):
         title = f"{col} distribution"
         
     plt.figure()
-    df[col].dropna().plot(kind="hist")
+    df[col].dropna().plot(kind="hist", bins=bins)
     
     plt.xlabel(col)
     plt.ylabel("Frequency")
@@ -122,3 +122,141 @@ def positive_rate_by_binary(df, cols, target, top=15, save=None):
     plt.show()
             
     return pd.DataFrame(rates, columns=["feature","pos_rate"])
+
+def decile_trend_plot(df, col, target="Diagnosis", q=10, save=None):
+    """
+    Function to plot target-rate across deciles
+    """
+    
+    qbins = pd.qcut(df[col], q=q, duplicates="drop")
+    rate = df.groupby(qbins, observed=False)[target].mean()           
+    n = df.groupby(qbins, observed=False)[target].size()\
+    
+    plt.figure()
+    rate.reset_index(drop=True).plot(marker="o")
+    plt.xlabel(f"{col} deciles (low -> high)")
+    plt.ylabel(f"Mean {target}")
+    plt.title(f"Asthma rate across {col} deciles")
+    
+    for i, v in enumerate(rate.values):
+        plt.text(i, v, str(int(n.iloc[i])), ha="center", va="bottom", fontsize=8)
+        
+    plt.tight_layout()
+    
+    if save:
+        plt.savefig(save)
+        
+    plt.show()
+
+def plot_target_rate_by_category(df, col, target="Diagnosis", order="index", observed=False, save=None):
+    """
+    Bar chart of P(target=1) by categorical code column function
+    """
+    
+    tbl = df.groupby(col, observed=observed)[target].agg(["mean","size"])
+    
+    if order == "rate":
+        tbl = tbl.sort_values("mean")
+    else:
+        tbl = tbl.sort_index()
+
+    plt.figure()
+    plt.bar(tbl.index.astype(str), tbl["mean"].values)
+    
+    for i, v in enumerate(tbl["mean"].values):
+        plt.text(i, v, str(int(tbl["size"].iloc[i])), ha="center", va="bottom", fontsize=8)  
+    
+    plt.xlabel(col)
+    plt.ylabel(f"P({target}=1)")
+    plt.title(f"Asthma rate by {col}")
+    plt.tight_layout()
+    
+    if save:
+        plt.savefig(save)
+        
+    plt.show()
+
+def plot_symptom_count_vs_rate(df, symptom_cols, target="Diagnosis", save=None):
+    """
+    Sum a set of 0/1 symptom flags per row, then plot P(target=1) vs that count (with counts annotated)
+    """
+    
+    tmp = df.copy()
+    tmp["symptom_count"] = tmp[symptom_cols].sum(axis=1)
+    rate = tmp.groupby("symptom_count", observed=False)[target].mean()
+    n = tmp.groupby("symptom_count", observed=False)[target].size()
+
+    plt.figure()
+    plt.bar(rate.index.astype(int), rate.values)
+    
+    for i, v in enumerate(rate.values):
+        plt.text(i, v, str(int(n.iloc[i])), ha="center", va="bottom", fontsize=8)
+        
+    plt.xlabel("Symptom count (sum of 0/1 flags)")
+    plt.ylabel(f"P({target}=1)")
+    plt.title("Asthma rate vs symptom count")
+    plt.tight_layout()
+    
+    if save:
+        plt.savefig(save)
+        
+    plt.show()
+
+def plot_risk_heatmap_2x2(df, a, b, target="Diagnosis", observed=False, save=None):
+    """
+    2x2 heatmap of P(target=1) for a pair of binary features (a,b) function
+    """
+    
+    g = df.groupby([a, b], observed=observed)[target].mean().unstack()
+    
+    plt.figure()
+    plt.imshow(g.values, interpolation="nearest")
+    plt.xticks([0,1], [f"{b}=0", f"{b}=1"])
+    plt.yticks([0,1], [f"{a}=0", f"{a}=1"])
+    plt.xlabel(b); plt.ylabel(a)
+    plt.title(f"P({target}=1) by {a} & {b}")
+    
+    for i in range(2):
+        for j in range(2):
+            try:
+                val = g.iloc[i, j]
+                if pd.notna(val):
+                    plt.text(j, i, f"{val:.2f}", ha="center", va="center")
+            except Exception:
+                pass
+                
+    plt.tight_layout()
+    
+    if save:
+        plt.savefig(save)
+        
+    plt.show()
+
+def plot_symptom_cooccurrence(df, cols, save=None):
+    """
+    Heatmap of pairwise co-occurrence rates: P(a=1 AND b=1) function
+    """
+    
+    cols = [c for c in cols if c in df.columns]
+    m = np.zeros((len(cols), len(cols)))
+    for i, a in enumerate(cols):
+        ai = df[a].eq(1)
+        for j, b in enumerate(cols):
+            m[i, j] = (ai & df[b].eq(1)).mean()
+
+    plt.figure()
+    plt.imshow(m, interpolation="nearest")
+    plt.xticks(range(len(cols)), cols, rotation=90)
+    plt.yticks(range(len(cols)), cols)
+    
+    for i in range(len(cols)):
+        for j in range(len(cols)):
+            plt.text(j, i, f"{m[i,j]:.2f}", ha="center", va="center", fontsize=7)
+   
+    plt.title("Symptom co-occurrence rate")
+    plt.tight_layout()
+    
+    if save:
+        plt.savefig(save)
+        
+    plt.show()
