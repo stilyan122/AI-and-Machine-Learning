@@ -1,3 +1,11 @@
+"""
+Exploratory visualization helpers.
+
+Matplotlib-only plots for class balance, histograms, boxplots, correlations,
+target-rate by categories, decile trends, and co-occurrence/risk heatmaps.
+Each function optionally saves to file (no I/O side effects otherwise).
+"""
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt

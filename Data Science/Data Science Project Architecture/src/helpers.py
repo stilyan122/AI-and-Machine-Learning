@@ -1,3 +1,10 @@
+"""
+General data preparation helpers.
+
+Pure, vectorized utilities for dropping columns, ordering columns by groups,
+and scaling continuous features. Functions are DF-in -> DF-out and parameterized.
+"""
+
 import numpy as np
 import pandas as pd
 

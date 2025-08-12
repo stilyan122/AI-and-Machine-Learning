@@ -1,3 +1,10 @@
+"""
+Feature engineering utilities.
+
+Adds composite indices, curated interactions, one-hot encodings, and performs
+basic redundancy pruning (zero-variance, high correlation). Outputs float-only tables.
+"""
+
 import numpy as np
 import pandas as pd
 
