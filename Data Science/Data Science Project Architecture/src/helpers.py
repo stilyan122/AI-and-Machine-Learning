@@ -1,3 +1,7 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
 def drop_and_dedup(df, drop_cols):
     """
     Drop only the columns that exist; remove exact duplicate rows
