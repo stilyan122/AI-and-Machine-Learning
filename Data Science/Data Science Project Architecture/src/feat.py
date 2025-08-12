@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 
 def fe_add_composites(df):
     """
@@ -111,9 +110,11 @@ def fe_drop_high_corr(df, exclude, threshold=0.98):
     Function to drop features with high correlation between them
     """
     
-    cols = [c for c in df.columns if c not in exclude]
+    cols = sorted([c for c in df.columns if c not in exclude])
+    
     if len(cols) <= 1:
         return df.copy(), []
+        
     C = df[cols].corr().abs()
     
     to_drop = set()

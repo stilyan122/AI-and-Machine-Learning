@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 
 def drop_and_dedup(df, drop_cols):
     """
@@ -55,4 +54,3 @@ def scale_continuous(df, cols, mode="z"):
         params["stds"]  = stds.to_dict()
 
     return out, params
-

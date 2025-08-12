@@ -21,8 +21,9 @@ def plot_target_distribution(y, title="Target distribution", save=None):
     
     if save:
         plt.savefig(save)
-
-    plt.show()
+        plt.close()
+    else:
+        plt.show()
 
 def plot_hist(df, col, title=None, save=None, bins=8):
     """
@@ -42,8 +43,9 @@ def plot_hist(df, col, title=None, save=None, bins=8):
     
     if save:
         plt.savefig(save)
-        
-    plt.show()
+        plt.close()
+    else:
+        plt.show()
     
 def boxplot_by_target(df, feature, target, labels=("Class 0","Class 1"), save=None):
     """
@@ -61,8 +63,9 @@ def boxplot_by_target(df, feature, target, labels=("Class 0","Class 1"), save=No
     
     if save:
         plt.savefig(save)
-
-    plt.show()
+        plt.close()
+    else:
+        plt.show()
 
 def top_corr_with_target(df, target, k=15, save=None):
     """
@@ -85,14 +88,15 @@ def top_corr_with_target(df, target, k=15, save=None):
     
     if save:
         plt.savefig(save)
-
-    plt.show()
+        plt.close()
+    else:
+        plt.show()
         
     return corr
 
 def positive_rate_by_binary(df, cols, target, top=15, save=None):
     """
-    Funciton to Plot a + Rate by Binary Columns
+    Function to Plot a + Rate by Binary Columns
     """
     
     rates = []
@@ -118,8 +122,9 @@ def positive_rate_by_binary(df, cols, target, top=15, save=None):
         
         if save:
             plt.savefig(save)
-
-    plt.show()
+            plt.close()
+        else:
+            plt.show()
             
     return pd.DataFrame(rates, columns=["feature","pos_rate"])
 
@@ -129,8 +134,9 @@ def decile_trend_plot(df, col, target="Diagnosis", q=10, save=None):
     """
     
     qbins = pd.qcut(df[col], q=q, duplicates="drop")
-    rate = df.groupby(qbins, observed=False)[target].mean()           
-    n = df.groupby(qbins, observed=False)[target].size()\
+    grp = df.groupby(qbins, observed=False)[target]
+    rate = grp.mean()
+    n = grp.size()
     
     plt.figure()
     rate.reset_index(drop=True).plot(marker="o")
@@ -145,8 +151,9 @@ def decile_trend_plot(df, col, target="Diagnosis", q=10, save=None):
     
     if save:
         plt.savefig(save)
-        
-    plt.show()
+        plt.close()
+    else:
+        plt.show()
 
 def plot_target_rate_by_category(df, col, target="Diagnosis", order="index", observed=False, save=None):
     """
@@ -173,8 +180,9 @@ def plot_target_rate_by_category(df, col, target="Diagnosis", order="index", obs
     
     if save:
         plt.savefig(save)
-        
-    plt.show()
+        plt.close()
+    else:
+        plt.show()
 
 def plot_symptom_count_vs_rate(df, symptom_cols, target="Diagnosis", save=None):
     """
@@ -199,8 +207,9 @@ def plot_symptom_count_vs_rate(df, symptom_cols, target="Diagnosis", save=None):
     
     if save:
         plt.savefig(save)
-        
-    plt.show()
+        plt.close()
+    else:
+        plt.show()
 
 def plot_risk_heatmap_2x2(df, a, b, target="Diagnosis", observed=False, save=None):
     """
@@ -229,8 +238,9 @@ def plot_risk_heatmap_2x2(df, a, b, target="Diagnosis", observed=False, save=Non
     
     if save:
         plt.savefig(save)
-        
-    plt.show()
+        plt.close()
+    else:
+        plt.show()
 
 def plot_symptom_cooccurrence(df, cols, save=None):
     """
@@ -258,5 +268,6 @@ def plot_symptom_cooccurrence(df, cols, save=None):
     
     if save:
         plt.savefig(save)
-        
-    plt.show()
+        plt.close()
+    else:
+        plt.show()
