@@ -64,7 +64,7 @@ def boxplot_by_target(df, feature, target, labels=("Class 0","Class 1"), save=No
     data1 = df.loc[df[target]==1, feature].dropna().values
     
     plt.figure()
-    plt.boxplot([data0, data1], labels=list(labels))
+    plt.boxplot([data0, data1], tick_labels=list(labels))
     plt.ylabel(feature)
     plt.title(f"{feature} by {target}")
     plt.tight_layout()
@@ -80,26 +80,43 @@ def top_corr_with_target(df, target, k=15, save=None):
     Function to Build Correlation Plot By a Given Target
     """
     
+    # numeric columns except the target
     num_cols = df.select_dtypes(include=[np.number]).columns.tolist()
-    
     if target in num_cols:
         num_cols.remove(target)
-        
-    corr = df[num_cols].corrwith(df[target]).abs().sort_values(ascending=False).head(k)
-    plt.figure()
-    corr.plot(kind="bar")
-    
-    plt.gca().tick_params(axis='x', labelrotation=70)
-    plt.ylabel("|Pearson correlation|")
-    plt.title(f"Top {k} numeric features correlated with {target}")
-    plt.tight_layout()
-    
-    if save:
-        plt.savefig(save)
-        plt.close()
+
+    # keep only non-constant numeric predictors
+    non_const = [c for c in num_cols if df[c].var() > 0]
+
+    # if target itself is constant, nothing to do
+    if df[target].var() == 0 or len(non_const) == 0:
+        corr = pd.Series(dtype=float)
     else:
+        # compute correlations safely and drop NaNs/Infs
+        corr = df[non_const].corrwith(df[target])
+        corr = corr.replace([np.inf, -np.inf], np.nan).dropna()
+        corr = corr.abs().sort_values(ascending=False).head(k)
+
+    # plot only if we have something
+    if len(corr) > 0:
+        plt.figure()
+        corr.plot(kind="bar")
+        plt.gca().tick_params(axis='x', labelrotation=70)
+        plt.ylabel("|Pearson correlation|")
+        plt.title(f"Top {k} numeric features correlated with {target}")
+        plt.tight_layout()
+        if save:
+            plt.savefig(save)
         plt.show()
-        
+    else:
+        # create an empty figure so tests expecting a file don't choke if save is set
+        plt.figure()
+        plt.title(f"No non-constant numeric features for correlation vs {target}")
+        plt.tight_layout()
+        if save:
+            plt.savefig(save)
+        plt.close()
+
     return corr
 
 def positive_rate_by_binary(df, cols, target, top=15, save=None):

@@ -103,53 +103,85 @@ def fe_one_hot_codes(df, cols, drop_first=False, prefix_sep="="):
 
 def fe_variance_filter(df, exclude, eps=1e-12):
     """
-    Function to clear a values where variance is 0
+    Drop zero-variance features.
+    - For numeric columns: use variance.
+    - For non-numeric columns: drop if nunique==1 (constant label).
     """
     
-    cols = [c for c in df.columns if c not in exclude]
-    keep = [c for c in cols if df[c].var() > eps]
-    dropped = sorted(set(cols) - set(keep))
-    
-    return pd.concat([df[exclude], df[keep]], axis=1), dropped
+    out = df.copy()
+    cols = [c for c in out.columns if c not in exclude]
+
+    # split columns by dtype
+    num_cols = [c for c in cols if pd.api.types.is_numeric_dtype(out[c])]
+    non_num_cols = [c for c in cols if c not in num_cols]
+
+    # numeric: keep those with variance > eps
+    keep_num = [c for c in num_cols if out[c].var() > eps]
+    drop_const_num = [c for c in num_cols if c not in keep_num]
+
+    # non-numeric: keep those with more than one unique value
+    keep_non = []
+    drop_const_non = []
+    for c in non_num_cols:
+        if out[c].nunique(dropna=False) > 1:
+            keep_non.append(c)
+        else:
+            drop_const_non.append(c)
+
+    kept = keep_num + keep_non
+    dropped = sorted(drop_const_num + drop_const_non)
+
+    return pd.concat([out[exclude], out[kept]], axis=1), dropped
 
 def fe_drop_high_corr(df, exclude, threshold=0.98):
     """
-    Function to drop features with high correlation between them
+    Drop one of any pair of highly correlated NUMERIC features (|r| >= threshold).
+    Non-numeric columns are kept as-is.
     """
     
-    cols = sorted([c for c in df.columns if c not in exclude])
-    
-    if len(cols) <= 1:
-        return df.copy(), []
-        
-    C = df[cols].corr().abs()
-    
+    cols = [c for c in df.columns if c not in exclude]
+    cols = sorted(cols)  # deterministic
+
+    # only correlate numeric columns
+    num_cols = [c for c in cols if pd.api.types.is_numeric_dtype(df[c])]
+    non_num_cols = [c for c in cols if c not in num_cols]
+
+    if len(num_cols) <= 1:
+        kept = non_num_cols + num_cols
+        return pd.concat([df[exclude], df[kept]], axis=1), []
+
+    C = df[num_cols].corr().abs()
     to_drop = set()
-    
-    for i, a in enumerate(cols):
-        if a in to_drop: 
+    for i, a in enumerate(num_cols):
+        if a in to_drop:
             continue
-        for b in cols[i+1:]:
+        for b in num_cols[i+1:]:
             if b in to_drop:
                 continue
-            if C.at[a, b] >= threshold:
+            if C.loc[a, b] >= threshold:
                 to_drop.add(b)
-                
-    kept = [c for c in cols if c not in to_drop]
-    return pd.concat([df[exclude], df[kept]], axis=1), sorted(to_drop)
+
+    kept_num = [c for c in num_cols if c not in to_drop]
+    kept = non_num_cols + kept_num
+    return pd.concat([df[exclude], df[kept]], axis=1), sorted(list(to_drop))
 
 def fe_enforce_float_and_order(df, target):
     """
-    Function to ensure numeric columns and correct order
+    Ensure all predictors are float dtype and keep target last.
+    Non-numeric predictors are dropped in this final feature table.
     """
-    
-    cols = [c for c in df.columns if c != target]
     out = df.copy()
-    
-    for c in cols:
+    preds = [c for c in out.columns if c != target]
+
+    # keep only numeric predictors
+    num_preds = [c for c in preds if pd.api.types.is_numeric_dtype(out[c])]
+
+    # cast numeric predictors to float
+    for c in num_preds:
         out[c] = out[c].astype(float)
-        
-    return out[cols + [target]]
+
+    # return predictors (float-only) + target last
+    return out[num_preds + [target]]
 
 def fe_build_feature_table(df, target="Diagnosis", code_cols=None, corr_threshold=0.98, drop_first=False):
     """

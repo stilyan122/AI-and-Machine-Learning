@@ -18,21 +18,31 @@ def drop_and_dedup(df, drop_cols):
     return out, present
 
 def build_column_order(df, continuous_cols, small_codes, binary_cols, target):
-    """
-    Order: continuous + small_codes + binaries + target (last); keep leftovers first
-    """
-    
-    continuous = [c for c in continuous_cols if c in df.columns]
-    small = [c for c in small_codes if c in df.columns]
-    bins = [c for c in binary_cols if c in df.columns and c != target]
-    
-    core = continuous + small + bins
-    
-    leftovers = [c for c in df.columns if c not in core + [target]]
-    order = leftovers + core + ([target] if target in df.columns else [])
-    
-    return order
 
+    """
+    Order columns for modeling/reporting:
+
+    leftovers (not in any group) +
+    continuous (in GIVEN order) +
+    small_codes (in GIVEN order) +
+    binary (in GIVEN order) +
+    target (last).
+    """
+    cols = list(df.columns)
+
+    # Build the tail in EXACT given order, include only present cols, avoid dups
+    seen = {target}
+    core = []
+    for c in list(continuous_cols) + list(small_codes) + list(binary_cols):
+        if c in cols and c not in seen:
+            core.append(c)
+            seen.add(c)
+
+    # Leftovers = everything else except target and anything already in core
+    leftovers = [c for c in cols if c not in seen]
+
+    # Final order: leftovers + core + target
+    return leftovers + core + [target]
 def scale_continuous(df, cols, mode="z"):
     """
     Scale only 'cols'.
