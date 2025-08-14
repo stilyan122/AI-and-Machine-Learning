@@ -1,0 +1,17 @@
+{
+  "input": "C:\\Users\\Jerry\\Documents\\Stilyan\\Programming\\Software University\\AI and Machine Learning\\Data Science\\Data Science Project Architecture\\data\\processed\\features_final.csv",
+  "model": "C:\\Users\\Jerry\\Documents\\Stilyan\\Programming\\Software University\\AI and Machine Learning\\Data Science\\Data Science Project Architecture\\models\\baseline_logreg.pkl",
+  "seed": 42,
+  "test_size": 0.25,
+  "C": 1.0,
+  "metrics": {
+    "acc": 0.6120401337792643,
+    "precision": 0.05726872246696035,
+    "recall": 0.41935483870967744,
+    "f1": 0.10077519379844961,
+    "auc": 0.5189167662285943,
+    "n_train": 1794,
+    "n_test": 598
+  },
+  "timestamp": "2025-08-14T18:44:26.667580Z"
+}
