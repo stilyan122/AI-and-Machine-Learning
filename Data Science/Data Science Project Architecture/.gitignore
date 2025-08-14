@@ -1,0 +1,14 @@
+# caches & artifacts
+__pycache__/
+.ipynb_checkpoints/
+.pytest_cache/
+*.pyc
+*.manifest.json
+
+# data artifacts (keep raw tracked if needed)
+data/processed/*.csv
+reports/figures/*.png
+
+# venvs
+.venv/
+venv/
